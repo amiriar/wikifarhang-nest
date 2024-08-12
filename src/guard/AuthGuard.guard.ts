@@ -1,0 +1,43 @@
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as cookie from 'cookie';
+
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+
+    try {
+      // Parse cookies using a robust method
+      const cookies = cookie.parse(request.headers.cookie || '');
+      const token = cookies['accessToken'];
+
+      if (!token) {
+        throw new UnauthorizedException('دسترسی بدون ورود به حساب کاربری مجاز نیست.');
+      }
+
+      // Verify and decode the token
+      const decodedToken = this.jwtService.verify(token);
+      request.user = decodedToken;
+
+      return true;
+    } catch (error) {
+      // Handle different error cases with Persian messages
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('زمان نشست شما به پایان رسیده است. لطفاً مجدداً وارد شوید.');
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new BadRequestException('توکن معتبر نیست.');
+      } else {
+        throw new UnauthorizedException('لطفاً برای دسترسی وارد حساب کاربری خود شوید.');
+      }
+    }
+  }
+}
