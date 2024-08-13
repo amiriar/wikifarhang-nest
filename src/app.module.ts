@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { Article } from './entities/Article.entitiy';
 import { User } from './entities/User.entity';
 import { Role } from './entities/role.entity';
+import { Otp } from './entities/Otp.entity';
 
 dotenv.config()
 
@@ -21,7 +22,7 @@ dotenv.config()
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [User, Article, Role],
+      entities: [User, Article, Role, Otp],
       synchronize: true, // Set to false in production
     }),
     UsersModule,

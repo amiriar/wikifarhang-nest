@@ -34,23 +34,21 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOneByUsername(@Body('username') username: string): Promise<User> {
-    const user = await this.userService.findOneByUsername(username);
+  async findOneByPhone(@Body('phone') phone: string): Promise<User> {
+    const user = await this.userService.findOneByPhone(phone);
     if (!user) {
-      throw new NotFoundException(`User with username ${username} not found`);
+      throw new NotFoundException(`User with phone ${phone} not found`);
     }
     return user;
   }
 
   // Create a new user
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.createUser(
-      createUserDto.username,
-      createUserDto.email,
-      createUserDto.password,
-    );
-  }
+  // @Post()
+  // async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+  //   return this.userService.createUser(
+  //     createUserDto.phoneNumber,
+  //   );
+  // }
 
   // Update a user
   @Put(':id')

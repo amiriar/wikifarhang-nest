@@ -4,18 +4,16 @@ import {
   Body,
   Res,
   HttpCode,
-  ConflictException,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { UsersService } from 'src/admin/users/users.service';
-import * as bcrypt from 'bcrypt';
 import * as moment from 'moment-jalaali';
 import { AuthGuard } from 'src/guard/AuthGuard.guard';
+import { User } from 'src/entities/User.entity';
 moment.loadPersian();
-
-
 
 @Controller('auth')
 export class AuthController {
@@ -24,62 +22,50 @@ export class AuthController {
     private userService: UsersService,
   ) {}
 
-  @Post('login')
+  @Post('send-otp')
+  @HttpCode(201)
+  async sendOTP(@Body('phone') phone: string) {
+    if (!phone) {
+      throw new BadRequestException('شماره تلفن مورد نیاز است.');
+    }
+
+    const madeIn = moment().format('jYYYY/jMM/jDD HH:mm');
+
+    let user: User = await this.userService.findOneByPhone(phone);
+
+    if (!user) {
+      user = await this.userService.createUser(phone, madeIn);
+    }
+
+    const otp = this.userService.generateOtp();
+    await this.userService.saveOtp(user.id, otp);
+
+    await this.userService.sendOtpToPhone(phone, otp); 
+
+    return {
+      message: 'OTP با موفقیت ارسال شد.',
+      otp,
+    };
+  }
+
+  @Post()
   @HttpCode(200)
   async login(
-    @Body('username') username: string,
-    @Body('password') password: string,
+    @Body('phone') phone: string,
+    @Body('code') code: string,
     @Res() res: Response,
   ) {
     const lastDateIn = moment().format('jYYYY/jMM/jDD HH:mm');
-    const user = await this.authService.validateUser(username, password, lastDateIn);
+    const user = await this.authService.validateUser(phone, code, lastDateIn);
     const { accessToken } = await this.authService.signToken(user);
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       maxAge: 86400000,
     });
-    res.send({ message: 'Login successful' });
+    res.status(200).send({ message: 'با موفقیت وارد شدید.' });
   }
 
-  @Post('register')
-  @HttpCode(201)
-  async register(
-    @Body('username') username: string,
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Res() res: Response,
-  ) {
-    const existingUserByUsername =
-      await this.userService.findOneByUsername(username);
-    if (existingUserByUsername) {
-      throw new ConflictException('Username already exists');
-    }
-
-    const existingUserByEmail = await this.userService.findOneByEmail(email);
-    if (existingUserByEmail) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const lastDateIn = moment().format('jYYYY/jMM/jDD HH:mm');
-
-    const newUser = await this.authService.register(
-      username,
-      email,
-      hashedPassword,
-      lastDateIn
-    );
-    const { accessToken } = await this.authService.signToken(newUser);
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      maxAge: 86400000,
-    });
-    res.status(200).send({ message: 'Registration successful', user: newUser });
-  }
 
   @Post('logout')
   @HttpCode(200)
@@ -92,7 +78,7 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   async changePassword(@Body() oldPassword: string, newPassword: string) {
-    
     return this.authService.changePassword(oldPassword, newPassword);
   }
+
 }

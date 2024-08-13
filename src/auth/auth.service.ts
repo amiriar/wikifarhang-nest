@@ -26,20 +26,32 @@ export class AuthService {
   ) {}
 
   async validateUser(
-    username: string,
-    password: string,
+    phone: string,
+    code: string,
     lastDateIn: string,
   ): Promise<User> {
     const user = await this.entityManager.findOne(User, {
-      where: { username },
+      where: { phoneNumber: phone },
     });
-
-    if (user && (await bcrypt.compare(password, user.password))) {
-      user.lastDateIn = lastDateIn;
-      return this.userRepository.save(user);
+  
+    if (!user) {
+      throw new UnauthorizedException('کاربری با این شماره تلفن یافت نشد.');
     }
-    throw new UnauthorizedException('Invalid credentials');
+    // Check if the OTP matches and is not expired
+    if(new Date() > user.otpExpiresAt){
+      throw new UnauthorizedException('کد وارد شده منقضی شده است.');
+    }
+  
+    if (user.otp === code) {
+      user.lastDateIn = lastDateIn;
+      user.otp = null; // Clear the OTP after successful validation
+      user.otpExpiresAt = null; // Clear the expiration time after successful validation
+      return this.userRepository.save(user);
+    } else {
+      throw new UnauthorizedException('اطلاعات وارد شده صحیح نمی‌باشد.');
+    }
   }
+  
 
   async signToken(user: User) {
     const payload = {
@@ -77,17 +89,22 @@ export class AuthService {
     }
   }
 
-  async changePassword(oldPassword: string, newPassword): Promise<User> {
+  async changePassword(oldPassword: string, newPassword: string): Promise<User> {
     const user = request.user as User
     const userId = user.id
     if (!user) {
       throw new NotFoundException('کاربری با این مشخصات پیدا نشد.');
     }
 
-    // Logic to change the password
-
+    // Logic to change the passsword
+    const compare = bcrypt.compareSync(newPassword, oldPassword)
+    if(compare){
+      let salt = bcrypt.genSaltSync(10)
+      let hash = bcrypt.hashSync(newPassword, salt)
+      user.password = hash
+      await this.userRepository.save(user)
+    }
     
-
     return user; // You might return some success message or the user info
   }
 }
