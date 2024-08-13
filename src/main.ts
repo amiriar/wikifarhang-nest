@@ -14,10 +14,13 @@ async function bootstrap() {
     .setTitle('WikiFarhang Backend - NestJS')
     .setDescription('The WikiFarhang API Made By Amirreza Abdolrahimi')
     .setVersion('1.0')
-    .addTag('nest')
+    // .addTag('nest')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api-docs', app, document, {
+    jsonDocumentUrl: 'swagger/json',
+  });
 
   await app.listen(3000);
 }

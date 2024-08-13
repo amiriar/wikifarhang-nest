@@ -1,3 +1,4 @@
+// auth.controller.ts
 import {
   Controller,
   Post,
@@ -7,12 +8,14 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { UsersService } from 'src/admin/users/users.service';
 import * as moment from 'moment-jalaali';
+import { AuthService } from './auth.service';
+import { UsersService } from 'src/admin/users/users.service';
 import { AuthGuard } from 'src/guard/AuthGuard.guard';
 import { User } from 'src/entities/User.entity';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+
 moment.loadPersian();
 
 @Controller('auth')
@@ -24,6 +27,11 @@ export class AuthController {
 
   @Post('send-otp')
   @HttpCode(201)
+  @ApiTags('Authentication')
+  @ApiOperation({ summary: 'Send OTP to user\'s phone' })
+  @ApiBody({ schema: { properties: { phone: { type: 'string' } } } })
+  @ApiResponse({ status: 201, description: 'OTP sent successfully.' })
+  @ApiResponse({ status: 400, description: 'Phone number is required.' })
   async sendOTP(@Body('phone') phone: string) {
     if (!phone) {
       throw new BadRequestException('شماره تلفن مورد نیاز است.');
@@ -40,7 +48,7 @@ export class AuthController {
     const otp = this.userService.generateOtp();
     await this.userService.saveOtp(user.id, otp);
 
-    await this.userService.sendOtpToPhone(phone, otp); 
+    await this.userService.sendOtpToPhone(phone, otp);
 
     return {
       message: 'OTP با موفقیت ارسال شد.',
@@ -48,8 +56,13 @@ export class AuthController {
     };
   }
 
-  @Post()
+  @Post('login')
   @HttpCode(200)
+  @ApiTags('Authentication')
+  @ApiOperation({ summary: 'User login with phone and OTP' })
+  @ApiBody({ schema: { properties: { phone: { type: 'string' }, code: { type: 'string' } } } })
+  @ApiResponse({ status: 200, description: 'Login successful.' })
+  @ApiResponse({ status: 401, description: 'Invalid OTP or phone number.' })
   async login(
     @Body('phone') phone: string,
     @Body('code') code: string,
@@ -66,9 +79,11 @@ export class AuthController {
     res.status(200).send({ message: 'با موفقیت وارد شدید.' });
   }
 
-
   @Post('logout')
   @HttpCode(200)
+  @ApiTags('Authentication')
+  @ApiOperation({ summary: 'Logout the user' })
+  @ApiResponse({ status: 200, description: 'Logout successful.' })
   async logout(@Res() res: Response) {
     res.clearCookie('accessToken');
     res.send({ message: 'logout successful' });
@@ -77,8 +92,13 @@ export class AuthController {
   @Post('change-pass')
   @HttpCode(200)
   @UseGuards(AuthGuard)
-  async changePassword(@Body() oldPassword: string, newPassword: string) {
+  @ApiTags('Authentication')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiBody({ schema: { properties: { oldPassword: { type: 'string' }, newPassword: { type: 'string' } } } })
+  @ApiResponse({ status: 200, description: 'Password changed successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  async changePassword(@Body() oldPassword: string, @Body() newPassword: string) {
     return this.authService.changePassword(oldPassword, newPassword);
   }
-
 }
