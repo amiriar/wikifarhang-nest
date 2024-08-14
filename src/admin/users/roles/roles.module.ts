@@ -12,6 +12,7 @@ dotenv.config()
     TypeOrmModule.forFeature([Role]),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
+
       signOptions: { expiresIn: '24h' },
     }),
   ],

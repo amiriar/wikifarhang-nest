@@ -81,6 +81,7 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(200)
+  @UseGuards(AuthGuard)
   @ApiTags('Authentication')
   @ApiOperation({ summary: 'Logout the user' })
   @ApiResponse({ status: 200, description: 'Logout successful.' })
@@ -93,7 +94,7 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(AuthGuard)
   @ApiTags('Authentication')
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   @ApiBody({ schema: { properties: { oldPassword: { type: 'string' }, newPassword: { type: 'string' } } } })
   @ApiResponse({ status: 200, description: 'Password changed successfully.' })

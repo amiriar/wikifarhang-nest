@@ -137,6 +137,27 @@ export class ArticlesController {
     required: true,
     description: 'The ID of the article',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        moreInformation: { type: 'array', items: { type: 'object' } },
+        note: { type: 'string' },
+        resources: { type: 'array', items: { type: 'string' } },
+        gotTo: { type: 'array', items: { type: 'string' } },
+        extras: { type: 'array', items: { type: 'string' } },
+        approved: { type: 'boolean', default: false },
+        approvedBySuperAdmin: { type: 'boolean', default: false },
+        isVisible: { type: 'boolean', default: false },
+        languages: { type: 'array', items: { type: 'string' } },
+        date: { type: 'string' },
+        author: { type: 'string' },
+        editHistory: { type: 'array', items: { type: 'object' } },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Article updated successfully.' })
   @ApiResponse({ status: 404, description: 'Article not found.' })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
