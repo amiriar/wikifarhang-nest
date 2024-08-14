@@ -30,7 +30,6 @@ export class AuthGuard implements CanActivate {
       const decodedToken = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET_KEY,
       });
-
       request.user = decodedToken;
 
       return true;
