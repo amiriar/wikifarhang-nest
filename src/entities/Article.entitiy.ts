@@ -59,7 +59,7 @@ export class Article {
   @Column({ nullable: true })
   date: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true }) 
   author: string;
 
   @Column('simple-json', { nullable: true })

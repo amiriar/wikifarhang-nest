@@ -7,7 +7,6 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/User.entity';
 import * as dotenv from 'dotenv';
-import { AuthGuard } from 'src/guard/AuthGuard.guard';
 import { RolesModule } from 'src/admin/users/roles/roles.module';
 import { Otp } from 'src/entities/Otp.entity';
 dotenv.config();
@@ -18,7 +17,7 @@ dotenv.config();
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '24h' },
     }),
     TypeOrmModule.forFeature([User, Otp]),
     RolesModule,

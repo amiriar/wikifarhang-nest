@@ -47,7 +47,7 @@ export class CreateArticleDto {
 
   @IsOptional()
   @IsBoolean()
-  isVisisble: boolean;
+  isVisible: boolean;
 }
 
 export class UpdateArticleDto {

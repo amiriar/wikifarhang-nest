@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Article } from 'src/entities/Article.entitiy';
 import { CreateArticleDto, UpdateArticleDto } from './dto/create-article.dto';
 import { User } from 'src/entities/User.entity';
-import * as moment from 'moment-jalaali'
+import * as moment from 'moment-jalaali';
 
 interface EditHistory {
   editorId: string;
@@ -28,6 +28,7 @@ export class ArticlesService {
   findAllByDESC(): Promise<Article[]> {
     return this.articlesRepository.find({
       order: { date: 'DESC' },
+      take: 6,
     });
   }
 
@@ -52,7 +53,7 @@ export class ArticlesService {
   async update(
     id: string,
     updateArticleDto: UpdateArticleDto,
-    editorId: string, 
+    editorId: string,
   ): Promise<Article> {
     const article = await this.articlesRepository.findOne({ where: { id } });
 

@@ -16,7 +16,7 @@ import { request } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService,
+    private jwtService: JwtService,
     private readonly usersService: UsersService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -64,32 +64,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async register(
-    username: string,
-    email: string,
-    password: string,
-    lastDateIn: string,
-  ) {
-    try {
-      const user = this.userRepository.create({
-        username,
-        email,
-        password,
-        lastDateIn,
-      });
-
-      return await this.userRepository.save(user);
-    } catch (error) {
-      if (error.code === '23505') {
-        // PostgreSQL unique violation error code
-        throw new ConflictException('Username or email already exists');
-      } else {
-        throw new InternalServerErrorException('Something went wrong');
-      }
-    }
-  }
-
-  async changePassword(oldPassword: string, newPassword: string): Promise<User> {
+   async changePassword(oldPassword: string, newPassword: string): Promise<User> {
     const user = request.user as User
     const userId = user.id
     if (!user) {

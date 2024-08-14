@@ -10,6 +10,7 @@ import { Article } from './entities/Article.entitiy';
 import { User } from './entities/User.entity';
 import { Role } from './entities/role.entity';
 import { Otp } from './entities/Otp.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 dotenv.config()
 
@@ -28,6 +29,10 @@ dotenv.config()
     UsersModule,
     ArticlesModule,
     AuthModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET_KEY,
+      signOptions: { expiresIn: '24h' },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
