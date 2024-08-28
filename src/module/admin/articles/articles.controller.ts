@@ -1,5 +1,5 @@
 import { Controller, Delete, Param, UseGuards, Patch, Req, Put, Get, NotFoundException, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { AuthGuard } from 'src/common/guard/AuthGuard.guard';
@@ -9,7 +9,8 @@ import { AdminArticlesService } from './articles.service';
 import { Article } from 'src/entities/Article.entitiy';
 import { User } from 'src/entities/User.entity';
 import { Request } from 'express';
-import { EditHistoryDto } from './dto/EditHistory.dto';
+import { ApproveChangeDto } from './dto/approve-change.dto';
+import { RejectChangeDto } from './dto/reject-change.dto';
 
 @ApiTags('(Admin Panel) Articles')
 @Controller('admin/articles')
@@ -106,31 +107,62 @@ export class AdminArticlesController {
   }
 
 
-  @Patch('/articles/:id/pending-changes/:changeId/approve')
-  async approvePendingChange(
-    @Param('id') articleId: string,
-    @Param('changeId') changeId: string
-  ): Promise<Article> {
-    return this.articlesService.approvePendingChange(articleId, changeId);
-  }
-  
-
-  @Put(':id/reject')
+  @Put(':id/pending-changes/:changeId/approve')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERADMIN')
-  @ApiOperation({ summary: 'Reject pending changes to an article' })
+  @ApiOperation({ summary: 'Approve a pending change' })
   @ApiParam({
     name: 'id',
     required: true,
     description: 'The ID of the article',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Pending changes rejected successfully.',
+  @ApiParam({
+    name: 'changeId',
+    required: true,
+    description: 'The ID of the pending change',
   })
-  @ApiResponse({ status: 404, description: 'Article or changes not found.' })
+  @ApiBody({
+    description: 'Reason for approving the change',
+    type: ApproveChangeDto,
+  })
+  @ApiResponse({ status: 200, description: 'Pending change approved successfully.' })
+  @ApiResponse({ status: 404, description: 'Article or change not found.' })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
-  async rejectChanges(@Param('id') id: string, @Req() request: Request): Promise<Article> {
-    return this.articlesService.rejectChanges(id);
+  async approvePendingChange(
+    @Param('id') articleId: string,
+    @Param('changeId') changeId: string,
+    @Body() approveChangeDto: ApproveChangeDto,
+  ): Promise<Article> {
+    return this.articlesService.approvePendingChange(articleId, changeId, approveChangeDto.reason);
   }
+
+  @Put(':id/pending-changes/:changeId/reject')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN')
+  @ApiOperation({ summary: 'Reject a pending change' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'The ID of the article',
+  })
+  @ApiParam({
+    name: 'changeId',
+    required: true,
+    description: 'The ID of the pending change',
+  })
+  @ApiBody({
+    description: 'Reason for rejecting the change',
+    type: RejectChangeDto,
+  })
+  @ApiResponse({ status: 200, description: 'Pending change rejected successfully.' })
+  @ApiResponse({ status: 404, description: 'Article or change not found.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
+  async rejectChanges(
+    @Param('id') id: string,
+    @Param('changeId') changeId: string,
+    @Body() rejectChangeDto: RejectChangeDto,
+  ): Promise<Article> {
+    return this.articlesService.rejectChanges(id, changeId, rejectChangeDto.reason);
+  }
+  
 }

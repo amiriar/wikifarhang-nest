@@ -11,9 +11,10 @@ interface EditHistory {
   editorId: string;
   timestamp: string;
   changes: Partial<UpdateArticleDto>;
-  changesApproved: boolean; 
+  changesApproved: boolean;
+  approvalReason?: string; // Add this line
+  rejectionReason?: string; // Add this line
 }
-
 
 
 @Injectable()
@@ -46,32 +47,6 @@ export class AdminArticlesService {
       .where('article.pendingChanges IS NOT NULL')
       .getMany();
   }
-
-  async approvePendingChange(articleId: string, changeId: string): Promise<Article> {
-    const article = await this.articlesRepository.findOne({ where: { id: articleId } });
-
-    if (!article) {
-      throw new NotFoundException('Article not found');
-    }
-
-    if (!article.pendingChanges || !article.pendingChanges.length) {
-      throw new NotFoundException('No pending changes found');
-    }
-
-    const change = article.pendingChanges.find(ch => ch.id === changeId);
-
-    if (!change) {
-      throw new NotFoundException('Change not found');
-    }
-
-    change.changesApproved = true;
-    article.pendingChanges = article.pendingChanges.map(ch =>
-      ch.id === changeId ? change : ch
-    );
-
-    return this.articlesRepository.save(article);
-  }
-
 
   async toggleAdminApproval(id: string): Promise<Article> {
     const article = await this.articlesRepository.findOne({ where: { id } });
@@ -124,17 +99,66 @@ export class AdminArticlesService {
   
     return this.articlesRepository.save(article);
   }
+
+
+  async approvePendingChange(articleId: string, changeId: string, reason: string): Promise<Article> {
+    const article = await this.articlesRepository.findOne({ where: { id: articleId } });
   
-  async rejectChanges(id: string): Promise<Article> {
-    const article = await this.articlesRepository.findOne({ where: { id } });
-
-    if (!article || !article.pendingChanges || article.pendingChanges.length === 0) {
-      throw new NotFoundException(`No pending changes for article with ID ${id}`);
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${articleId} not found`);
     }
-
-    article.pendingChanges.shift();
-
+  
+    const changeIndex = article.pendingChanges.findIndex(change => change.id === changeId);
+  
+    if (changeIndex === -1) {
+      throw new NotFoundException(`Change with ID ${changeId} not found`);
+    }
+  
+    const change = article.pendingChanges[changeIndex];
+  
+    // Update the change with approval reason
+    change.changesApproved = true;
+    change.approvalReason = reason;
+  
+    // Remove the change from pendingChanges
+    article.pendingChanges.splice(changeIndex, 1);
+  
+    // Add the change to editHistory
+    article.editHistory = article.editHistory || [];
+    article.editHistory.push(change);
+  
+    // Save the updated article
     return this.articlesRepository.save(article);
   }
-
+  
+  async rejectChanges(articleId: string, changeId: string, reason: string): Promise<Article> {
+    const article = await this.articlesRepository.findOne({ where: { id: articleId } });
+  
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${articleId} not found`);
+    }
+  
+    const changeIndex = article.pendingChanges.findIndex(change => change.id === changeId);
+  
+    if (changeIndex === -1) {
+      throw new NotFoundException(`Change with ID ${changeId} not found`);
+    }
+  
+    const change = article.pendingChanges[changeIndex];
+  
+    // Set rejection reason
+    change.rejectionReason = reason;
+  
+    // Remove the change from pendingChanges
+    article.pendingChanges.splice(changeIndex, 1);
+  
+    // Add the change to rejectHistory
+    article.rejectHistory = article.rejectHistory || [];
+    article.rejectHistory.push(change);
+  
+    // Save the updated article
+    return this.articlesRepository.save(article);
+  }
+  
+  
 }

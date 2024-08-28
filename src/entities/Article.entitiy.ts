@@ -1,4 +1,4 @@
-import { MoreInformationItem } from "src/module/articles/dto/create-article.dto";
+import { MoreInformationItem, UpdateArticleDto } from "src/module/articles/dto/create-article.dto";
 import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -53,6 +53,10 @@ export class Article {
   @Column('jsonb', { nullable: true })
   pendingChanges: EditHistory[];
 
+  @Column('jsonb', { nullable: true })
+  rejectHistory: EditHistory[];
+
+
   @BeforeInsert()
   generateId() {
     this.id = uuidv4();
@@ -62,7 +66,10 @@ export class Article {
 interface EditHistory {
   id: string;
   editorId: string;
-  changes: Record<string, any>;
   timestamp: string;
-  changesApproved?: boolean;
+  changes: Partial<UpdateArticleDto>;
+  changesApproved: boolean;
+  approvalReason?: string; // Add this line
+  rejectionReason?: string; // Add this line
 }
+
