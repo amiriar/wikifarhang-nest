@@ -7,11 +7,13 @@ import { AuthModule } from 'src/module/auth/auth.module';
 import { AdminArticlesController } from 'src/module/admin/articles/articles.controller';
 import { AdminArticlesService } from 'src/module/admin/articles/articles.service';
 import { Article } from 'src/entities/Article.entitiy';
+import { UsersService } from '../admin/users/users.service';
+import { Otp } from 'src/entities/Otp.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Article, User]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Article, User, Otp]), AuthModule],
   controllers: [ArticlesController, AdminArticlesController],
-  providers: [ArticlesService, AdminArticlesService],
+  providers: [ArticlesService, AdminArticlesService, UsersService],
   exports: [ArticlesService],
 })
 export class ArticlesModule {}

@@ -1,13 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from 'src/entities/Article.entitiy';
-import { Brackets, Not, Repository } from 'typeorm';
+import { Brackets, DataSource, Not, Repository } from 'typeorm';
+import { EditHistoryDto } from './dto/EditHistory.dto';
+import moment from 'moment';
+import { UpdateArticleDto } from 'src/module/articles/dto/create-article.dto';
+
+interface EditHistory {
+  id: string;
+  editorId: string;
+  timestamp: string;
+  changes: Partial<UpdateArticleDto>;
+  changesApproved: boolean; 
+}
+
+
 
 @Injectable()
 export class AdminArticlesService {
   constructor(
     @InjectRepository(Article)
     private articlesRepository: Repository<Article>,
+    private dataSource: DataSource
   ) {}
 
   async remove(id: string): Promise<void> {
@@ -26,12 +40,38 @@ export class AdminArticlesService {
 
 
   async findPendingChangesApprovalArticles(): Promise<Article[]> {
-    return this.articlesRepository.find({
-      where: [
-        { pendingChanges: Not(null) },
-      ],
-    });
+    return this.dataSource
+      .getRepository(Article)
+      .createQueryBuilder('article')
+      .where('article.pendingChanges IS NOT NULL')
+      .getMany();
   }
+
+  async approvePendingChange(articleId: string, changeId: string): Promise<Article> {
+    const article = await this.articlesRepository.findOne({ where: { id: articleId } });
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    if (!article.pendingChanges || !article.pendingChanges.length) {
+      throw new NotFoundException('No pending changes found');
+    }
+
+    const change = article.pendingChanges.find(ch => ch.id === changeId);
+
+    if (!change) {
+      throw new NotFoundException('Change not found');
+    }
+
+    change.changesApproved = true;
+    article.pendingChanges = article.pendingChanges.map(ch =>
+      ch.id === changeId ? change : ch
+    );
+
+    return this.articlesRepository.save(article);
+  }
+
 
   async toggleAdminApproval(id: string): Promise<Article> {
     const article = await this.articlesRepository.findOne({ where: { id } });
@@ -65,30 +105,26 @@ export class AdminArticlesService {
     article.isVisible = article.approved && article.approvedBySuperAdmin;
   }
 
-
-  async approveChanges(id: string, adminId: string): Promise<Article> {
-    const article = await this.articlesRepository.findOne({ where: { id } });
-
-    if (!article || !article.pendingChanges || article.pendingChanges.length === 0) {
-      throw new NotFoundException(`No pending changes for article with ID ${id}`);
+  async addPendingChange(articleId: string, editHistoryDto: EditHistoryDto): Promise<Article> {
+    const article = await this.articlesRepository.findOne({ where: { id: articleId } });
+  
+    if (!article) {
+      throw new NotFoundException('Article not found');
     }
-
-    // Apply the first set of pending changes
-    const pendingChange = article.pendingChanges[0];
-    Object.assign(article, pendingChange.changes);
-
-    // Remove the applied changes from pendingChanges
-    article.pendingChanges.shift();
-
-    // Update the approval status
-    article.approved = true;
-    article.approvedBySuperAdmin = true;
-    article.isVisible = true;
-
-    // Save the changes
+  
+    const newPendingChange: EditHistory = {
+      ...editHistoryDto,
+      id: moment().format('x'), // or generate a proper UUID if needed
+      changesApproved: false, // Ensure this is set
+    };
+  
+    article.pendingChanges = article.pendingChanges
+      ? [...article.pendingChanges, newPendingChange]
+      : [newPendingChange];
+  
     return this.articlesRepository.save(article);
   }
-
+  
   async rejectChanges(id: string): Promise<Article> {
     const article = await this.articlesRepository.findOne({ where: { id } });
 

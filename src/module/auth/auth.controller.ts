@@ -112,19 +112,15 @@ export class AuthController {
   ) {
     const user = await this.authService.validateRefreshToken(refreshToken);
 
-    // Generate a new access token without altering the refresh token
     const { accessToken } = await this.authService.generateAccessToken(user);
 
-    // Set new access token in an httpOnly cookie
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 30 minutes
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Return new access token in the response body
     res.status(200).send({
       message: 'Access token refreshed successfully.',
-      accessToken,
     });
   }
 

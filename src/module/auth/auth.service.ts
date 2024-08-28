@@ -58,23 +58,29 @@ export class AuthService {
       id: user.id,
       role: user.roles,
     };
-  
+
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET_KEY,
       expiresIn: '30m', // 30 minutes
     });
-  
+
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET_KEY,
       expiresIn: '7d', // 7 days
     });
-  
+
+    const currentDate = new Date();
+
+    // Add 7 days to the current date
+    const expiresIn = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+    const expirationDate = new Date(currentDate.getTime() + expiresIn);
+
     user.refreshToken = refreshToken;
+    user.refreshTokenExpiresAt = expirationDate;
     await this.userRepository.save(user);
-  
+
     return { accessToken, refreshToken };
   }
-  
 
   async generateAccessToken(user: User) {
     const payload = {
@@ -85,7 +91,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET_KEY,
-      expiresIn: '30m', // 30 minutes
+      expiresIn: '30m', // 7 days
     });
 
     return { accessToken };
@@ -125,7 +131,6 @@ export class AuthService {
       throw new NotFoundException('کاربری با این مشخصات پیدا نشد.');
     }
 
-    // Logic to change the passsword
     const compare = bcrypt.compareSync(newPassword, oldPassword);
     if (compare) {
       let salt = bcrypt.genSaltSync(10);
@@ -134,6 +139,6 @@ export class AuthService {
       await this.userRepository.save(user);
     }
 
-    return user; // You might return some success message or the user info
+    return user;
   }
 }

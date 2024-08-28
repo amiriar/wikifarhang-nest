@@ -17,8 +17,8 @@ export class Article {
   @Column('json', { array: false, nullable: true })
   moreInformation: MoreInformationItem[];
 
-  @Column({ nullable: true })
-  note?: string;
+  @Column({ nullable: true, type: 'text', array: true })
+  note?: string[];
 
   @Column('simple-array', { nullable: true })
   resources?: string[];
@@ -50,8 +50,8 @@ export class Article {
   @Column('simple-json', { nullable: true })
   editHistory: EditHistory[];
 
-  @Column('simple-json', { nullable: true })
-  pendingChanges: EditHistory[]; // New field for storing pending changes
+  @Column('jsonb', { nullable: true })
+  pendingChanges: EditHistory[];
 
   @BeforeInsert()
   generateId() {
@@ -60,6 +60,7 @@ export class Article {
 }
 
 interface EditHistory {
+  id: string;
   editorId: string;
   changes: Record<string, any>;
   timestamp: string;

@@ -8,13 +8,14 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as cookie from 'cookie';
 import * as dotenv from 'dotenv';
+import { UsersService } from 'src/module/admin/users/users.service';
 dotenv.config();
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService,private usersService: UsersService) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
     try {
@@ -30,7 +31,9 @@ export class AuthGuard implements CanActivate {
       const decodedToken = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET_KEY,
       });
-      request.user = decodedToken;
+
+      const user = await this.usersService.findOne(decodedToken.id)
+      request.user = user;
 
       return true;
     } catch (error) {

@@ -15,6 +15,7 @@ export class CreateArticleDto {
 
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   note?: string;
 
   @IsOptional()
@@ -28,6 +29,10 @@ export class CreateArticleDto {
   @IsOptional()
   @IsArray()
   extras?: string[];
+
+  @IsOptional()
+  @IsArray()
+  languages?: string[];
 
   @IsOptional()
   @IsString()
@@ -64,7 +69,8 @@ export class UpdateArticleDto {
   moreInformation?: MoreInformationItem[];
 
   @IsOptional()
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   note?: string;
 
   @IsOptional()
@@ -82,13 +88,13 @@ export class UpdateArticleDto {
   // @IsBoolean()
   // approved: boolean;
 
-  @IsOptional()
-  @IsString()
-  author: string;
+  // @IsOptional()
+  // @IsString()
+  // author: string;
 
-  @IsOptional()
-  @IsString()
-  date: string;
+  // @IsOptional()
+  // @IsString()
+  // date: string;
 
   // @IsBoolean()
   // approvedBySuperAdmin: boolean;

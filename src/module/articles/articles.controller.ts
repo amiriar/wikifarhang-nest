@@ -27,10 +27,11 @@ import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { User } from 'src/entities/User.entity';
 import { Article } from 'src/entities/Article.entitiy';
+import { EditHistoryDto } from '../admin/articles/dto/EditHistory.dto';
 
 moment.loadPersian();
 
-@ApiTags('Articles') // Group all under "Articles"
+@ApiTags('Articles') 
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
@@ -96,7 +97,6 @@ export class ArticlesController {
         gotTo: { type: 'array', items: { type: 'string' } },
         extras: { type: 'array', items: { type: 'string' } },
         languages: { type: 'array', items: { type: 'string' } },
-        editHistory: { type: 'array', items: { type: 'object' } },
       },
     },
   })
@@ -121,8 +121,21 @@ export class ArticlesController {
     createArticleDto.approvedBySuperAdmin = false;
     createArticleDto.isVisible = false;
 
+    console.log(createArticleDto);
+    
+
     return this.articlesService.create(createArticleDto);
   }
+
+
+  @Post('/articles/:id/pending-changes')
+  async addPendingChange(
+    @Param('id') articleId: string,
+    @Body() editHistoryDto: EditHistoryDto
+  ): Promise<Article> {
+    return this.articlesService.addPendingChange(articleId, editHistoryDto);
+  }
+  
 
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
@@ -144,11 +157,7 @@ export class ArticlesController {
         resources: { type: 'array', items: { type: 'string' } },
         gotTo: { type: 'array', items: { type: 'string' } },
         extras: { type: 'array', items: { type: 'string' } },
-        approved: { type: 'boolean', default: false },
-        approvedBySuperAdmin: { type: 'boolean', default: false },
-        isVisible: { type: 'boolean', default: false },
         languages: { type: 'array', items: { type: 'string' } },
-        editHistory: { type: 'array', items: { type: 'object' } },
       },
     },
   })

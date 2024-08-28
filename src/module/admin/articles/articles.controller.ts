@@ -1,4 +1,4 @@
-import { Controller, Delete, Param, UseGuards, Patch, Req, Put, Get } from '@nestjs/common';
+import { Controller, Delete, Param, UseGuards, Patch, Req, Put, Get, NotFoundException, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guard/roles.guard';
@@ -9,6 +9,7 @@ import { AdminArticlesService } from './articles.service';
 import { Article } from 'src/entities/Article.entitiy';
 import { User } from 'src/entities/User.entity';
 import { Request } from 'express';
+import { EditHistoryDto } from './dto/EditHistory.dto';
 
 @ApiTags('(Admin Panel) Articles')
 @Controller('admin/articles')
@@ -42,7 +43,7 @@ export class AdminArticlesController {
   @ApiResponse({
     status: 200,
     description: 'List of articles pending approval retrieved successfully.',
-    type: [Article],  // This specifies the response type as an array of Articles
+    type: [Article],
   })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
   getPendingApprovalArticles(): Promise<Article[]> {
@@ -56,12 +57,14 @@ export class AdminArticlesController {
   @ApiResponse({
     status: 200,
     description: 'List of articles pending approval retrieved successfully.',
-    type: [Article],  // This specifies the response type as an array of Articles
+    type: [Article],
   })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
   findPendingChangesApprovalArticles(): Promise<Article[]> {
     return this.articlesService.findPendingChangesApprovalArticles();
   }
+
+  
 
 
   @Patch(':id/toggle-admin-approval')
@@ -102,26 +105,15 @@ export class AdminArticlesController {
     return this.articlesService.toggleSuperAdminApproval(id);
   }
 
-  @Put(':id/approve')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN')
-  @ApiOperation({ summary: 'Approve pending changes to an article' })
-  @ApiParam({
-    name: 'id',
-    required: true,
-    description: 'The ID of the article',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Pending changes approved successfully.',
-  })
-  @ApiResponse({ status: 404, description: 'Article or changes not found.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
-  async approveChanges(@Param('id') id: string, @Req() request: Request): Promise<Article> {
-    const user = request.user as User;
 
-    return this.articlesService.approveChanges(id, user.id);
+  @Patch('/articles/:id/pending-changes/:changeId/approve')
+  async approvePendingChange(
+    @Param('id') articleId: string,
+    @Param('changeId') changeId: string
+  ): Promise<Article> {
+    return this.articlesService.approvePendingChange(articleId, changeId);
   }
+  
 
   @Put(':id/reject')
   @UseGuards(AuthGuard, RolesGuard)
