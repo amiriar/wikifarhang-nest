@@ -56,11 +56,63 @@ export class AuthService {
     const payload = {
       username: user.username,
       id: user.id,
-      role: user.roles, // Use the role name
+      role: user.roles,
     };
-    const accessToken = this.jwtService.sign(payload);
+  
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+      expiresIn: '30m', // 30 minutes
+    });
+  
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_TOKEN_SECRET_KEY,
+      expiresIn: '7d', // 7 days
+    });
+  
+    user.refreshToken = refreshToken;
+    await this.userRepository.save(user);
+  
+    return { accessToken, refreshToken };
+  }
+  
+
+  async generateAccessToken(user: User) {
+    const payload = {
+      username: user.username,
+      id: user.id,
+      role: user.roles,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+      expiresIn: '30m', // 30 minutes
+    });
 
     return { accessToken };
+  }
+
+  async validateRefreshToken(token: string): Promise<User> {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_REFRESH_TOKEN_SECRET_KEY,
+      });
+
+      const user = await this.userRepository.findOne({
+        where: { id: payload.id, refreshToken: token },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token.');
+      }
+
+      if (new Date() > user.refreshTokenExpiresAt) {
+        throw new UnauthorizedException('Refresh token expired.');
+      }
+
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
   }
 
   async changePassword(

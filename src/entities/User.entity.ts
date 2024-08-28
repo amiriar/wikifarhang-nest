@@ -24,10 +24,10 @@ export class User {
 
   @Column({ unique: true, nullable: true })
   email?: string;
-  
+
   @Column({ default: false })
   verifiedEmail?: string;
-  
+
   @Column({ nullable: true })
   password?: string;
 
@@ -42,7 +42,7 @@ export class User {
 
   @Column({ nullable: true })
   phoneNumber: string;
-  
+
   @Column({ nullable: true })
   otp?: string;
 
@@ -60,7 +60,13 @@ export class User {
 
   @OneToMany(() => Otp, (otp) => otp.user)
   otps: Otp[];
-  
+
+  @Column({ nullable: true })
+  refreshToken?: string;
+
+  @Column({ nullable: true })
+  refreshTokenExpiresAt?: Date;
+
   @BeforeInsert()
   generateId() {
     this.id = uuidv4();
