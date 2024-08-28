@@ -14,7 +14,7 @@ export class CreateArticleDto {
   moreInformation?: MoreInformationItem[];
 
   @IsOptional()
-  @IsString()
+  @IsArray()
   note?: string;
 
   @IsOptional()

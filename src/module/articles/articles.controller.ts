@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto, UpdateArticleDto } from './dto/create-article.dto';
@@ -90,16 +91,11 @@ export class ArticlesController {
         title: { type: 'string' },
         description: { type: 'string' },
         moreInformation: { type: 'array', items: { type: 'object' } },
-        note: { type: 'string' },
+        note: { type: 'array', items: { type: 'string' } },
         resources: { type: 'array', items: { type: 'string' } },
         gotTo: { type: 'array', items: { type: 'string' } },
         extras: { type: 'array', items: { type: 'string' } },
-        approved: { type: 'boolean', default: false },
-        approvedBySuperAdmin: { type: 'boolean', default: false },
-        isVisible: { type: 'boolean', default: false },
         languages: { type: 'array', items: { type: 'string' } },
-        date: { type: 'string' },
-        author: { type: 'string' },
         editHistory: { type: 'array', items: { type: 'object' } },
       },
     },
@@ -109,26 +105,22 @@ export class ArticlesController {
     description: 'Article created successfully.',
     type: Article,
   })
+  @ApiBearerAuth()
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
   async create(
     @Body() createArticleDto: CreateArticleDto,
     @Req() request: Request,
   ): Promise<Article> {
-    // Extract the user information from the request (assuming the AuthGuard sets it)
     const user = request.user as User;
 
-    // Auto-fill authorId with the current user's ID
     createArticleDto.author = user.id;
 
-    // Set the current date in the desired format (Jalali format using moment-jalaali)
     createArticleDto.date = moment().format('jYYYY/jMM/jDD HH:mm');
 
-    // Initialize other properties with default values
     createArticleDto.approved = false;
     createArticleDto.approvedBySuperAdmin = false;
     createArticleDto.isVisible = false;
 
-    // Call the service method to create the article
     return this.articlesService.create(createArticleDto);
   }
 
@@ -156,12 +148,11 @@ export class ArticlesController {
         approvedBySuperAdmin: { type: 'boolean', default: false },
         isVisible: { type: 'boolean', default: false },
         languages: { type: 'array', items: { type: 'string' } },
-        date: { type: 'string' },
-        author: { type: 'string' },
         editHistory: { type: 'array', items: { type: 'object' } },
       },
     },
   })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Article updated successfully.' })
   @ApiResponse({ status: 404, description: 'Article not found.' })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
@@ -174,16 +165,4 @@ export class ArticlesController {
     const editorId = user.id;
     return this.articlesService.update(id, updateArticleDto, editorId);
   }
-
-  // @Delete(':id')
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @Roles('ADMIN', 'SUPERADMIN')
-  // @ApiOperation({ summary: 'Delete an article by ID' })
-  // @ApiParam({ name: 'id', required: true, description: 'The ID of the article' })
-  // @ApiResponse({ status: 200, description: 'Article deleted successfully.' })
-  // @ApiResponse({ status: 404, description: 'Article not found.' })
-  // @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
-  // async deleteArticle(@Param('id') id: string) {
-  //   return this.articlesService.deleteArticle(id);
-  // }
 }

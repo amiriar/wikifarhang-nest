@@ -1,22 +1,7 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  BeforeInsert,
-} from 'typeorm';
+import { MoreInformationItem } from "src/module/articles/dto/create-article.dto";
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
 
-class MoreInformationItem {
-  @Column()
-  title: string;
-
-  @Column()
-  description: string;
-
-  @Column({ nullable: true })
-  image?: string; // optional field
-}
 
 @Entity()
 export class Article {
@@ -49,7 +34,7 @@ export class Article {
 
   @Column({ default: false })
   approvedBySuperAdmin: boolean;
-  
+
   @Column({ default: false })
   isVisible: boolean;
 
@@ -59,11 +44,14 @@ export class Article {
   @Column({ nullable: true })
   date: string;
 
-  @Column({ nullable: true }) 
+  @Column({ nullable: true })
   author: string;
 
   @Column('simple-json', { nullable: true })
   editHistory: EditHistory[];
+
+  @Column('simple-json', { nullable: true })
+  pendingChanges: EditHistory[]; // New field for storing pending changes
 
   @BeforeInsert()
   generateId() {
@@ -75,4 +63,5 @@ interface EditHistory {
   editorId: string;
   changes: Record<string, any>;
   timestamp: string;
+  changesApproved?: boolean;
 }

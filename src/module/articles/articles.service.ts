@@ -10,8 +10,8 @@ interface EditHistory {
   editorId: string;
   timestamp: string;
   changes: Partial<UpdateArticleDto>;
+  changesApproved: boolean
 }
-
 @Injectable()
 export class ArticlesService {
   constructor(
@@ -25,15 +25,15 @@ export class ArticlesService {
     return this.articlesRepository.find();
   }
 
+  findOne(id: string): Promise<Article> {
+    return this.articlesRepository.findOne({ where: { id } });
+  }
+
   findAllByDESC(): Promise<Article[]> {
     return this.articlesRepository.find({
       order: { date: 'DESC' },
       take: 6,
     });
-  }
-
-  findOne(id: string): Promise<Article> {
-    return this.articlesRepository.findOne({ where: { id } });
   }
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
@@ -61,10 +61,7 @@ export class ArticlesService {
       throw new NotFoundException(`Article with ID ${id} not found`);
     }
 
-    article.approved = false;
-    article.approvedBySuperAdmin = false;
-    article.isVisible = false;
-
+    // Record the proposed changes
     const changes: Record<string, any> = {};
     Object.keys(updateArticleDto).forEach((key) => {
       if (updateArticleDto[key] !== article[key]) {
@@ -76,13 +73,13 @@ export class ArticlesService {
       editorId,
       changes,
       timestamp: moment().format('jYYYY/jMM/jDD HH:mm'),
+      changesApproved: false
     };
 
-    article.editHistory = article.editHistory
-      ? [...article.editHistory, editEntry]
+    // Add the changes to pendingChanges instead of applying them directly
+    article.pendingChanges = article.pendingChanges
+      ? [...article.pendingChanges, editEntry]
       : [editEntry];
-
-    Object.assign(article, updateArticleDto);
 
     return this.articlesRepository.save(article);
   }
@@ -98,7 +95,4 @@ export class ArticlesService {
     throw new NotFoundException(`Article not found in ${language} language`);
   }
 
-  async deleteArticle(id: string) {
-    return this.articlesRepository.delete(id);
-  }
 }
