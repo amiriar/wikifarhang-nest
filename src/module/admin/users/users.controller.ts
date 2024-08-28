@@ -14,11 +14,11 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { AuthGuard } from 'src/guard/AuthGuard.guard';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
+import { AuthGuard } from 'src/common/guard/AuthGuard.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
-@ApiTags('(Admin Panel) Users')  // Define the tag for this controller
+@ApiTags('(Admin Panel) Users') // Define the tag for this controller
 @Controller('admin/users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
@@ -33,7 +33,10 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiResponse({ status: 200, description: 'Return the user with the specified ID.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the user with the specified ID.',
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
@@ -47,7 +50,10 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a user by phone number' })
-  @ApiResponse({ status: 200, description: 'Return the user with the specified phone number.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the user with the specified phone number.',
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @Get('phone/:phone')
   @UseGuards(AuthGuard, RolesGuard)

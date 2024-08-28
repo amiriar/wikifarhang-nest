@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { UsersModule } from 'src/admin/users/users.module';
+import { UsersModule } from 'src/module/admin/users/users.module';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/User.entity';
 import * as dotenv from 'dotenv';
-import { RolesModule } from 'src/admin/users/roles/roles.module';
+import { RolesModule } from 'src/module/admin/users/roles/roles.module';
 import { Otp } from 'src/entities/Otp.entity';
 dotenv.config();
 

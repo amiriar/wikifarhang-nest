@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Article } from 'src/entities/Article.entitiy';
 import { CreateArticleDto, UpdateArticleDto } from './dto/create-article.dto';
 import { User } from 'src/entities/User.entity';
 import * as moment from 'moment-jalaali';
+import { Article } from 'src/entities/Article.entitiy';
 
 interface EditHistory {
   editorId: string;

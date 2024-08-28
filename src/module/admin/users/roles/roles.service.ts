@@ -23,12 +23,12 @@ export class RolesService {
 
   async changeRole(userId: string, role: string) {
     // @ts-ignore
-    const newRoleId = role.roleId
-    
+    const newRoleId = role.roleId;
+
     const user = await this.userRepository.findOneBy({ id: userId });
     const newRole = await this.roleRepository.findOneBy({ id: newRoleId });
     user.roles = newRole.name;
-    
+
     return await this.userRepository.save(user);
   }
 

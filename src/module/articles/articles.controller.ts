@@ -18,14 +18,14 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { ArticlesService } from './articles.service';
-import { Article } from 'src/entities/Article.entitiy';
 import { CreateArticleDto, UpdateArticleDto } from './dto/create-article.dto';
 import { Request } from 'express';
-import { AuthGuard } from 'src/guard/AuthGuard.guard';
+import { AuthGuard } from 'src/common/guard/AuthGuard.guard';
 import * as moment from 'moment-jalaali';
-import { RolesGuard } from 'src/guard/roles.guard';
-import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { User } from 'src/entities/User.entity';
+import { Article } from 'src/entities/Article.entitiy';
 
 moment.loadPersian();
 
@@ -104,7 +104,11 @@ export class ArticlesController {
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'Article created successfully.', type: Article })
+  @ApiResponse({
+    status: 201,
+    description: 'Article created successfully.',
+    type: Article,
+  })
   @ApiResponse({ status: 403, description: 'Forbidden. Unauthorized access.' })
   async create(
     @Body() createArticleDto: CreateArticleDto,
@@ -112,13 +116,13 @@ export class ArticlesController {
   ): Promise<Article> {
     // Extract the user information from the request (assuming the AuthGuard sets it)
     const user = request.user as User;
-    
+
     // Auto-fill authorId with the current user's ID
     createArticleDto.author = user.id;
-    
+
     // Set the current date in the desired format (Jalali format using moment-jalaali)
     createArticleDto.date = moment().format('jYYYY/jMM/jDD HH:mm');
-    
+
     // Initialize other properties with default values
     createArticleDto.approved = false;
     createArticleDto.approvedBySuperAdmin = false;

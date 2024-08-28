@@ -4,9 +4,9 @@ import { RolesService } from './roles.service';
 import { RolesController } from './roles.controller';
 import { Role } from 'src/entities/role.entity';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 import { User } from 'src/entities/User.entity';
-dotenv.config()
+dotenv.config();
 
 @Module({
   imports: [
@@ -15,7 +15,6 @@ dotenv.config()
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '24h' },
     }),
-    
   ],
   providers: [RolesService, JwtService],
   controllers: [RolesController],

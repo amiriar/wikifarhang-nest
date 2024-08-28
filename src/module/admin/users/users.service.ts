@@ -65,7 +65,7 @@ export class UsersService {
 
     user.otp = otp;
     user.otpExpiresAt = expirationTime;
-  
+
     await this.userRepository.save(user);
 
     return await this.otpRepository.save(newOtp);

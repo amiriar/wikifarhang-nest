@@ -11,10 +11,16 @@ import {
 import { Response } from 'express';
 import * as moment from 'moment-jalaali';
 import { AuthService } from './auth.service';
-import { UsersService } from 'src/admin/users/users.service';
-import { AuthGuard } from 'src/guard/AuthGuard.guard';
+import { UsersService } from 'src/module/admin/users/users.service';
+import { AuthGuard } from 'src/common/guard/AuthGuard.guard';
 import { User } from 'src/entities/User.entity';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 moment.loadPersian();
 
@@ -28,7 +34,7 @@ export class AuthController {
   @Post('send-otp')
   @HttpCode(201)
   @ApiTags('Authentication')
-  @ApiOperation({ summary: 'Send OTP to user\'s phone' })
+  @ApiOperation({ summary: "Send OTP to user's phone" })
   @ApiBody({ schema: { properties: { phone: { type: 'string' } } } })
   @ApiResponse({ status: 201, description: 'OTP sent successfully.' })
   @ApiResponse({ status: 400, description: 'Phone number is required.' })
@@ -60,7 +66,11 @@ export class AuthController {
   @HttpCode(200)
   @ApiTags('Authentication')
   @ApiOperation({ summary: 'User login with phone and OTP' })
-  @ApiBody({ schema: { properties: { phone: { type: 'string' }, code: { type: 'string' } } } })
+  @ApiBody({
+    schema: {
+      properties: { phone: { type: 'string' }, code: { type: 'string' } },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Login successful.' })
   @ApiResponse({ status: 401, description: 'Invalid OTP or phone number.' })
   async login(
@@ -96,10 +106,20 @@ export class AuthController {
   @ApiTags('Authentication')
   // @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
-  @ApiBody({ schema: { properties: { oldPassword: { type: 'string' }, newPassword: { type: 'string' } } } })
+  @ApiBody({
+    schema: {
+      properties: {
+        oldPassword: { type: 'string' },
+        newPassword: { type: 'string' },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Password changed successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async changePassword(@Body() oldPassword: string, @Body() newPassword: string) {
+  async changePassword(
+    @Body() oldPassword: string,
+    @Body() newPassword: string,
+  ) {
     return this.authService.changePassword(oldPassword, newPassword);
   }
 }

@@ -3,16 +3,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import * as dotenv from 'dotenv';
-import { UsersModule } from './admin/users/users.module';
-import { ArticlesModule } from './articles/articles.module';
-import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './module/admin/users/users.module';
+import { ArticlesModule } from './module/articles/articles.module';
+import { AuthModule } from './module/auth/auth.module';
 import { Article } from './entities/Article.entitiy';
 import { User } from './entities/User.entity';
 import { Role } from './entities/role.entity';
 import { Otp } from './entities/Otp.entity';
 import { JwtModule } from '@nestjs/jwt';
 
-dotenv.config()
+dotenv.config();
 
 @Module({
   imports: [
